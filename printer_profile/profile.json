@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "name": "High Quality Zip Puller",
+  "settings": {
+    "material": "ABS",
+    "layer_height": 0.05,
+    "print_speed": "standard",
+    "infill_percentage": 80,
+    "supports": "false",
+    "print_temperature": 110,
+    "bed_temperature": 90,
+    "print_quality": "high"
+  }
+}
+
+
+#{
+#    "version": 2,
+#    "name": "Basic Profile",
+#    "settings": {
+#        "layer_height": 0.2,
+#        "wall_thickness": 0.8,
+#        "retraction_enable": true,
+#        "retraction_speed": 40,
+#        "retraction_amount": 6.5,
+#        "print_speed": 50,
+#        "print_temperature": 200,
+#        "print_bed_temperature": 60,
+#        "fill_density": 20,
+#        "support_enable": false,
+#        "support_type": "buildplate",
+#        "support_angle": 50,
+#        "adhesion_type": "skirt"
+#    }
+#}
+

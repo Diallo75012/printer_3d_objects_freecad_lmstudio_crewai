@@ -1,0 +1,20 @@
+# Freecad
+FreeCAD*
+*.AppImage
+freecad/
+freecad/*
+
+# env 
+.env
+venv
+*venv
+*venv/
+*venv/**
+
+# backup
+BAK*
+*BAK
+
+# ultimaker
+ultimaker/
+ultimaker/*
