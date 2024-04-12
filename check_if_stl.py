@@ -35,7 +35,7 @@ class Handler(FileSystemEventHandler):
       print(f"Received created event - {event.src_path}.")
       # Assuming you have CuraEngine in your PATH or provide the full path to CuraEngine
       if event.src_path.endswith('.stl'):
-        os.system(f"/home/creditizens/printer_3d_llm_agents/ultimaker/AppRun slice -v -p -j /home/creditizens/printer_3d_llm_agents/printer_profile/profile.json -o /home/creditizens/printer_3d_llm_agents/sliced_layers/sliced_stl_3d_object.gcode -l {event.src_path}")
+        os.system(f"/home/creditizens/printer_3d_llm_agents/ultimaker/AppRun slice -v -p -j /home/creditizens/printer_3d_llm_agents/printer_profile/profile.json -o /home/creditizens/printer_3d_llm_agents/gcode/sliced_stl_3d_object.gcode -l {event.src_path}")
         print(f"Slicing started for {event.src_path}")
 
 

@@ -3,6 +3,7 @@ pip install crewai['tools']
 pip install openai
 pip install groq
 pip install langchain-groq
+pip install langchain langchain_openai 
 pip install -U duckduckgo-search
 
 # get ultamaker
@@ -190,17 +191,34 @@ stl_to_png(stl_file, output_image)
 # prompt used:
 I need a 3D cube to be drawn using Freecad Python console and then slicing layers to be created so that I can 3D print the cube which has 10cm sides.
 
+# check if files present:
+ll freecad_script/ agent_stl/ stl/ gcode/
 
+### CREWAI
+## CrewAI Create Custom Tool
+# put your function logic inside this wrapper
+from crewai_tools import BaseTool
 
+class MyCustomTool(BaseTool):
+    name: str = "Name of my tool"
+    description: str = "What this tool does. It's vital for effective utilization."
 
+    def _run(self, argument: str) -> str:
+        # Your tool's logic here
+        return "Tool's result"
 
+OR use tool decorator by just addint name of the tool in decorator:
+from crewai_tools import tool
 
+@tool("Tool Name")
+def my_simple_tool(question: str) -> str:
+    """Tool description for clarity."""
+    # Tool logic here
+    return "Tool output"
 
-
-
-
-
-
+# get rid of crewai team work cache to restart fresh
+sudo rm -rf /printer_3d_venv/lib/python3.10/site-packages/crewai/__pycache__
+sudo rm -rf /printer_3d_venv/lib/python3.10/site-packages/crewai_tools/__pycache__
 
 
 
