@@ -37,6 +37,7 @@ class Handler(FileSystemEventHandler):
       if event.src_path.endswith('.stl'):
         os.system(f"/home/creditizens/printer_3d_llm_agents/ultimaker/AppRun slice -v -p -j /home/creditizens/printer_3d_llm_agents/printer_profile/profile.json -o /home/creditizens/printer_3d_llm_agents/gcode/sliced_stl_3d_object.gcode -l {event.src_path}")
         print(f"Slicing started for {event.src_path}")
+        return "The slicing task is done, layers should be ready in a 'sliced_stl_3d_object.gcode' file. Next step is for the manager to check if there is a '.stl' file present and to check if there is a '.gcode' file present using available tools. If the 'sliced_stl_3d_object.gcode' is present, congratulate everyone and consider job as done, if it is not present, request a new Python script from your collegue 'coder'."
 
 
 if __name__ == '__main__':

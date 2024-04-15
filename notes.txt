@@ -221,11 +221,20 @@ sudo rm -rf /printer_3d_venv/lib/python3.10/site-packages/crewai/__pycache__
 sudo rm -rf /printer_3d_venv/lib/python3.10/site-packages/crewai_tools/__pycache__
 
 
+### Freecad
+# open Freecad Python console:
+AppRun freecadcmd
+
+# execute script in the console command:
+exec(open("/<path_to_script>Test1.py").read())
 
 
+### Issues
 
-
-
+- when process is sequential: max_iter limit is reached the agent team stops working so task is not proceeding from where it has stopped. No grace period.
+- when process is hirarchical: the manager is not very clever and doesn't really manage well the co-worker team, I believe that the manager should have also set of variables like the agents with goals and what to do when something occurs. The manager also doesn't follow the workflow correctly and use random agents when the output of one is not yet produced and another agent depend on it (prompt issues?? not sure but have tested different ways, it seems to have issues: case of 7B parameters LLM, maybe with GPT4 would be more clever).
+- agents: sometimes they just ignore the tools available and do the job themselves. so sometimes never use the tools available or sometimes using the tools but very late in the process after a while.
+- Allucinations: Agents also sometimes don't seems to find tool and invent tool names taht don't exist. Agents lying when saying they used tool and did find the file output at the right location, when in reality no file have been output... this is a problem as the next agent start working and throuws an error and this becomes and error loop.
 
 
 
