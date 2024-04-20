@@ -129,7 +129,8 @@ x-ratelimit-reset-tokens	7.66s	Always refers to Tokens Per Minute (TPM)
 When the rate limit is reached we return a 429 Too Many Requests HTTP status code.
 Note, retry-after is only set if you hit the rate limit and status code 429 is returned. The other headers are always included.
 
-
+# GROQ new model like GTP4 almost
+llama3-70b-8192
 
 # mount disk E:/ to linux /mnt/e
 sudo mkdir /mnt/e
@@ -237,6 +238,20 @@ exec(open("/<path_to_script>Test1.py").read())
 - Allucinations: Agents also sometimes don't seems to find tool and invent tool names taht don't exist. Agents lying when saying they used tool and did find the file output at the right location, when in reality no file have been output... this is a problem as the next agent start working and throuws an error and this becomes and error loop.
 
 
+# Install slic3r for layer slicing as ultimaker asking to have a 3d printer to connect to it
+sudo apt update
+sudo apt install slic3r -y
+command to slice:
+slic3r --layer-height 0.2 --fill-density 20% --output /home/creditizens/printer_3d_llm_agents/gcode/cube.gcode /home/creditizens/printer_3d_llm_agents/stl/cube.stl
+outputs:
+=> Infilling layers
+=> Processing triangulated mesh
+=> Preparing infill
+=> Generating skirt
+=> Generating brim
+=> Exporting G-code to /home/creditizens/printer_3d_llm_agents/gcode/cube.gcode
+Done. Process took 0 minutes and 0.096 seconds
+Filament required: 862.5mm (6.1cm3)
 
 
 
