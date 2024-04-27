@@ -2,23 +2,24 @@
 
 import FreeCAD
 import Part
-import os
+import math
 
 # Create a new document
 doc = FreeCAD.newDocument()
 
-# Create a cube with sides of 23 cm
-cube = doc.addObject("Part::Box", "Cube")
-cube.Length = 230  # Changed to millimeters
-cube.Width = 230  # Changed to millimeters
-cube.Height = 230  # Changed to millimeters
+# Define the length of a side
+side_length = 33
 
-# Export the cube as an STL file
-file_path = "/home/creditizens/printer_3d_llm_agents/agent_stl/"
-file_name = "cube.stl"
-file_path_and_name = os.path.join(file_path, file_name)
+# Create the vertices of the triangle
+vertex1 = FreeCAD.Vector(0, 0, 0)
+vertex2 = FreeCAD.Vector(side_length / 2, math.sqrt(3) / 2 * side_length, 0)
+vertex3 = FreeCAD.Vector(side_length, 0, 0)
+
+# Create the triangle
+triangle = doc.addObject("Part::Feature", "Triangle")
+triangle.Shape = Part.makePolygon([vertex1, vertex2, vertex3])
+
+# Export the triangle as an STL file
 doc.recompute()
-Part.export(doc.Objects[0], file_path_and_name, "STL20")
-
-# Close the document
-doc.close()
+file_path = "/home/creditizens/printer_3d_llm_agents/agent_stl/triangle.stl"
+Part.export(triangle, file_path)

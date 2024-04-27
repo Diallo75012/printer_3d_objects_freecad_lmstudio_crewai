@@ -18,3 +18,14 @@ BAK*
 # ultimaker
 ultimaker/
 ultimaker/*
+
+# cache-cache
+__pycache__/*
+__pycache__
+*__pycache__/
+*__pycache__*
+
+# log
+llama.log
+
+*.log

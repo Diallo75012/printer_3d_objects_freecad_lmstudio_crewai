@@ -1,4 +1,6 @@
 import vtk
+import os
+
 
 def render_stl_to_png(stl_file_path, output_image_path):
     # Create a reader for the STL file
@@ -45,10 +47,11 @@ def render_stl_to_png(stl_file_path, output_image_path):
     writer.SetInputConnection(w2if.GetOutputPort())
     writer.Write()
 
-# Example usage
-with open("../stl/", "r") as dir:
-  for elem in dir:
-    stl_file_path = f"../stl/{elem}"
-output_image_path = 'object_3d.png'
+for file in os.listdir("../stl/"):
+  filename = os.fsdecode(file)
+  if filename.endswith(".stl"):
+    print(os.path.join("../stl/", filename))
+    stl_file_path = f"{os.path.join('../stl/', filename)}"
+output_image_path = "/home/creditizens/printer_3d_llm_agents/png_verify/object_3d.png"
 render_stl_to_png(stl_file_path, output_image_path)
 

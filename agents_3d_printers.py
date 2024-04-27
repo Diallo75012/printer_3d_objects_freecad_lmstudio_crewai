@@ -16,7 +16,9 @@ LM_OPENAI_MODEL_NAME=os.getenv("LM_OPENAI_MODEL_NAME")
 LM_OPENAI_API_KEY=os.getenv("LM_OPENAI_API_KEY")
 GROQ_API_KEY=os.getenv("GROQ_API_KEY")
 groq_client=Groq()
-groq_llm = ChatGroq(temperature=float(os.getenv("GROQ_TEMPERATURE")), groq_api_key=os.getenv("GROQ_API_KEY"), model_name=os.getenv("MODEL"), max_tokens=int(os.getenv("GROQ_MAX_TOKEN")))
+groq_llm_mixtral_7b = ChatGroq(temperature=float(os.getenv("GROQ_TEMPERATURE")), groq_api_key=os.getenv("GROQ_API_KEY"), model_name=os.getenv("MODEL_MIXTRAL_7B"),
+max_tokens=int(os.getenv("GROQ_MAX_TOKEN")))
+groq_llm_llama3_70b = ChatGroq(temperature=float(os.getenv("GROQ_TEMPERATURE")), groq_api_key=os.getenv("GROQ_API_KEY"), model_name=os.getenv("MODEL_LLAMA3_70B"), max_tokens=int(os.getenv("GROQ_MAX_TOKEN")))
 lmstudio_llm = OpenAI(base_url=LM_OPENAI_API_BASE, api_key=LM_OPENAI_MODEL_NAME)
 openai_llm = ChatOpenAI() #OpenAI()
 
@@ -270,15 +272,49 @@ scriptcreator = StructuredTool.from_function(
   # coroutine= ... # can specify async
   )
 
+# stl to png tool
+def pngconverter() -> str:
+  """
+    This function will convert .stl file to .png file to have a 2D version of the 3D object requested by the user so that user can verify that the object is corresponding to his request when he said: {topic}.
+  """
+  for f in os.listdir("../stl/"):
+    filename = os.fsdecode(f)
+    if filename.endswith(".stl"):
+      try:
+        print("............. STL file is being converted to PNG ....... please wait...")
+        import subprocess
+        command = ["python3", "/home/creditizens/printer_3d_llm_agents/png_verify/stl_to_png_check.py"]
+        execute_script_process = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        execution_error = execute_script_process.stderr
+        print("Error: ", execution_error)
+        # can put here a vision LLM check of the png file or use watchdog as well for the png_verify folder to call vision LLM and get the response sent to user via notification on the vision LLM result
+        return "Agent team have completed their work, STL file has been convert to PNG please verify that it is what you wanted to print. Image present in the folder '/verify_png/'.\n ***** Now vision LLM will check the image, please act according to its response *****\n**** It is an asynchronus Job: please wait until vision LLM complete his small mini report on what he sees****\n**** report will be available in the file located at path: /home/creditizens/printer_3d_llm_agents/png_verify/vision_report.txt ****"
+      except Exception as e:
+        return e
+
+pngconverter = StructuredTool.from_function(
+  func=pngconverter,
+  name="pngconverter",
+  description=  """
+    This tool will convert any .stl file to a .png file so that user can verify that the 3D object is what was requested in {topic}. It is a way to have a visual check of how the 3D object looks like. It should be the last step of the process after all other tasks have been done.
+  """,
+  #args_schema=ScriptPath,
+  # return_direct=True, # returns tool output only if no TollException raised
+  # coroutine= ... # can specify async
+  )
+
 # reading tool initialized with path so that agent can only read that file
 freecad_script_check_presence = DirectoryReadTool(file_path="/home/creditizens/printer_3d_llm_agents/freecad_script/freecad_script/", description="This is to check the presence of the script file 'drawing_script.py' in the director './freecad_script/'.", name="freecad_script_check_presence")
 freecad_script_reader = FileReadTool(file_path="/home/creditizens/printer_3d_llm_agents/freecad_script/freecad_script/drawing_script.py", description="This is to read the content of the script 'drawing_script.py'.", name="freecad_script_reader")
 
 # stl file presence check
-stl_agent_file_check_presence = DirectoryReadTool("/home/creditizens/printer_3d_llm_agents/freecad_script/agent_stl/", description="This is to check the presence of a '.stl' file in the folder '/home/creditizens/printer_3d_llm_agents/agent_stl/'.", name="stl_agent_file_check_presence")
+stl_agent_file_check_presence = DirectoryReadTool("/home/creditizens/printer_3d_llm_agents/freecad_script/agent_stl/", description="This is to check the presence of an '.stl' file in the folder '/home/creditizens/printer_3d_llm_agents/agent_stl/'.", name="stl_agent_file_check_presence")
 stl_to_be_sliced_file_check_presence = DirectoryReadTool("/home/creditizens/printer_3d_llm_agents/freecad_script/stl/", description="This is to check the presence of a '.stl' file in the folder '/stl/' to be layer sliced for 3d printing.", name="stl_to_be_sliced_file_check_presence")
 # '.gcode' file presence check
 gcode_file_check_presence = DirectoryReadTool("/home/creditizens/printer_3d_llm_agents/freecad_script/gcode/", description="This is to check the presence of a '.gcode' file in the folder '/gcode/' which means that all jobs are done and goal of the team reached.", name="gcode_file_check_presence")
+
+# check vision LLM report presence "/home/creditizens/printer_3d_llm_agents/png_verify/vision_report.txt"
+vision_llm_check_png_report = DirectoryReadTool("/home/creditizens/printer_3d_llm_agents/png_verify/", description="This is to check the presence of a '.txt' file in the folder '/png_verify/' which means that all jobs are done and goal of the team reached.", name="vision_llm_check_png_report")
 
 # copy file to automatic slicing folder
 def slicer_auto_process() -> str:
@@ -315,9 +351,9 @@ coder = Agent(
   backstory="""You are an expert in Freecad version 0.21.2 Python script coding and can create any 3d object just using your Python script abilities. You are very concise and precise and do not comment much but just do the job and always produce code in one unique block fulfilling all requirements.""",
   tools=[scriptcreator, stl_agent_file_check_presence],
   allow_delegation=True,
-  llm=groq_llm,
+  llm=groq_llm_mixtral_7b,
   #llm=openai_llm,
-  max_rpm=5,
+  max_rpm=7,
   max_iter=5,
 )
 
@@ -345,12 +381,26 @@ slicer = Agent(
   backstory="""You have been creating slicing layers for 3d printing and you are an expert.""",
   tools=[slicing_tool],
   allow_delegation=False,
-  llm=groq_llm,
+  llm=groq_llm_mixtral_7b,
   #llm=openai_llm,
   max_rpm=5,
   max_iter=3,
 )
 
+# converter for human verification
+converter = Agent(
+  role="converter",
+  goal=f"You MUST use 'pngconverter' tool to convert STL file to PNG file for human visual verification of the created 3D object. DO NOT create your own code, only the tools can be used for that. If you don't use the tool other agents won't be able to work. So do not block the work by doing what you believe is best. You MUST use the tool to fulfil user request: {topic}. Your part is to convert the STL file to a PNG one.",
+  verbose=True,
+  memory=True,
+  backstory="""You are an expert in converting STL files to PNG using tools available.""",
+  tools=[pngconverter, vision_llm_check_png_report],
+  allow_delegation=False,
+  llm=groq_llm_mixtral_7b,
+  #llm=openai_llm,
+  max_rpm=5,
+  max_iter=3,
+)
 
 # here add agent to use the '.gcode' file and print the object using the 3d printer software....
 
@@ -360,7 +410,7 @@ from crewai import Task
 
 # ask agent to create the script that will create the 3d object and output it as '.stl' file
 create_script_task = Task(
-  description=f"""Analyse first all the tools available and read their description. Then, you MUST use available tools to create and execute a Freecad Python script responding to user request: {topic}. DO NOT create by yourself, check available tools and use those as they are already set to perform the task. The returned message from the tool will tell you what should be done next. Analyse the returned message from the tool to see if there is any error, if any error retry the tool again to get the Python script. Then you check if the .stl file is present meaning that the script have properly executed.""",
+  description=f"""Analyse first all the tools available and read their description. Then, you MUST use available tools to create and execute a Freecad Python script responding to user request: {topic}. DO NOT create by yourself, check available tools and use those as they are already set to perform the task. The returned message from the tool will tell you what should be done next. Analyse the returned message from the tool to see if there is any error, if any error affecting the script to download the /stl file, retry the tool again to re-create another Python script.""",
   expected_output="MUST be a returned response from the tool with a success message and next step to be done or an error message.",
   # tools=[scriptcreator, freecad_script_check_presence], # if process=Process.sequential can put tool here as well but if it is hierarchical put it only at the agent level not task level for fluidity
   #tool=[scriptcreator],
@@ -383,11 +433,23 @@ create_script_task = Task(
 
 # Slicing the 3d model so that it is ready to be printed, needs the 'execute_script_task' to output a '.stl' file
 slicing_task = Task(
-  description=f"""Analyse first all the tools available and read their description. Then, you MUST use tools available to slice the 3d object into layers responding to user request: {topic}. DO NOT create by yourself, check available tools and use those as they are already set to perform the task. The returned message from the tool will tell you what should be done next.""",
+  description=f"""Analyse first all the tools available and read their description. Then, you MUST use tools available to slice the 3d object into layers responding to user request: {topic}. DO NOT create by yourself, check available tools and use those as they are already set to perform the task. The returned message from the tool will tell you what should be done next. When you can't use the tool ask for a script to be created by 'coder' probably the execution of th escript in Freecad Python console didn't download any 'stl file.""",
   expected_output=f"MUST be a returned response from the tool with a success message and next step to be done or an error message.",
   # tools=[stl_agent_file_check_presence, slicing_tool], # if process=Process.sequential can put tool here as well but if it is hierarchical put it only at the agent level not task level for fluidity
   #tool=[slicing_tool],
   agent=slicer,
+  async_execution=False,
+  #output_file="./gcode/sliced_stl_3d_object.gcode"  # here the script that the llm use will output the file so no need to ask the agent
+  #human_input=True,
+)
+
+# Converting STL file to PNG task
+pngconverting = Task(
+  description=f"""Analyse first all the tools available and read their description. Then, you MUST use tools available to STL file to PNG for the user to be able to do human visual verification of the object created before 3D printing it to not waste resources by creating the wrong object. DO NOT create by yourself, check available tools and use those as they are already set to perform the task. The returned message from the tool will tell you what should be done next.""",
+  expected_output=f"MUST be a returned response from the tool with a success message. When you can't use the tool ask for a script to be created by 'coder' probably the execution of th escript in Freecad Python console didn't download any 'stl file or 'slicer' couldn't slice any .stl file.",
+  # tools=[stl_agent_file_check_presence, slicing_tool], # if process=Process.sequential can put tool here as well but if it is hierarchical put it only at the agent level not task level for fluidity
+  #tool=[slicing_tool],
+  agent=converter,
   async_execution=False,
   #output_file="./gcode/sliced_stl_3d_object.gcode"  # here the script that the llm use will output the file so no need to ask the agent
   #human_input=True,
@@ -411,10 +473,10 @@ from crewai import Crew, Process
 
 # from langchain_openai import ChatOpenAI
 object_modelling_team = Crew(
-  tasks=[create_script_task, slicing_task],
-  agents=[coder, slicer],
+  tasks=[create_script_task, slicing_task, pngconverting],
+  agents=[coder, slicer, converter],
   # groq manager
-  manager_llm=groq_llm, #ChatOpenAI(temperature=0.1, model="mixtral-8x7b-32768", max_tokens=1024),
+  manager_llm=groq_llm_mixtral_7b, #ChatOpenAI(temperature=0.1, model="mixtral-8x7b-32768", max_tokens=1024),
   # openai manager
   #manager_llm=openai_llm,
   # tool=[scriptcreator, freecad_script_check_presence, codeexecutor, stl_agent_file_check_presence, slicing_tool, stl_to_be_sliced_file_check_presence, gcode_file_check_presence],
